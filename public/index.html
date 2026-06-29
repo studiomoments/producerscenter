@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>YouTube Audio Player</title>
+</head>
+<body>
+
+<h2>YouTube Audio Player</h2>
+
+<input id="url" style="width:600px" value="https://www.youtube.com/watch?v=dQw4w9WgXcQ" />
+<button id="btn">Воспроизвести</button>
+<h3 id="title"></h3>
+
+<audio id="audio" controls style="width:600px"></audio>
+<button id="saveBtn">
+    Скачать в OPFS
+</button>
+<script>
+    document.getElementById('saveBtn').onclick = async () => {
+    const videoUrl = document.getElementById('url').value;
+    const SERVER_URL = 'http://localhost:3000'; // Укажите адрес вашего бэкенда
+
+    try {
+        const response = await fetch(`${SERVER_URL}/download?url=${encodeURIComponent(videoUrl)}`);
+        if (!response.ok) throw new Error('Не удалось скачать файл с сервера');
+
+        const rawTitle = decodeURIComponent(response.headers.get('X-Video-Title') || 'video');
+        const ext = response.headers.get('X-File-Ext') || 'mp3';
+
+        // Важно: очищаем имя файла от запрещенных операционной системой символов
+        const cleanTitle = rawTitle.replace(/[/\\?%*:|"<>]/g, '-');
+        const fileName = cleanTitle + '.' + ext;
+
+        const root = await navigator.storage.getDirectory();
+        const fileHandle = await root.getFileHandle(fileName, { create: true });
+        const writable = await fileHandle.createWritable();
+
+        const reader = response.body.getReader();
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            await writable.write(value);
+        }
+
+        await writable.close();
+        console.log('Успешно сохранено в OPFS:', fileName);
+        alert(`Файл ${fileName} сохранен в OPFS!`);
+
+    } catch (error) {
+        console.error('Ошибка сохранения в OPFS:', error);
+    }
+};
+
+</script>
+<!-- Добавляем новую кнопку под инпутом -->
+<button id="localBtn">Download Local</button>
+
+<script>
+document.getElementById('localBtn').onclick = async () => {
+    const videoUrl = document.getElementById('url').value;
+    const SERVER_URL = 'http://localhost:3000'; // URL вашего Node.js сервера
+    
+    try {
+        console.log('Запуск скачивания через Blob...');
+
+        // 1. Запрашиваем файл через эндпоинт /download (который мы написали в Шаге 1)
+        // Этот эндпоинт стримит данные с YouTube и добавляет нужные CORS заголовки
+        const response = await fetch(`${SERVER_URL}/download?url=${encodeURIComponent(videoUrl)}`);
+        if (!response.ok) throw new Error('Не удалось получить поток файла');
+
+        // Получаем метаданные из заголовков, которые прописал наш сервер
+        const rawTitle = decodeURIComponent(response.headers.get('X-Video-Title') || 'video');
+        const ext = response.headers.get('X-File-Ext') || 'mp3';
+        
+        // Очищаем имя от запрещенных символов
+        const cleanTitle = rawTitle.replace(/[/\\?%*:|"<>]/g, '-');
+        const fullFileName = `${cleanTitle}.${ext}`;
+
+        // 2. Скачиваем поток в оперативную память браузера как Blob
+        // Вся нагрузка по сборке файла ложится на устройство клиента!
+        const fileBlob = await response.blob();
+
+        // 3. Создаем локальную URL-ссылку на этот Blob внутри браузера
+        const blobUrl = URL.createObjectURL(fileBlob);
+
+        // 4. Создаем тег <a> и вызываем скачивание на диск устройства
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fullFileName; // Теперь это имя железно применится!
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        // Очищаем память браузера после скачивания
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+
+        console.log('Файл успешно сохранен на устройство клиента:', fullFileName);
+
+    } catch (error) {
+        console.error('Ошибка при локальном скачивании:', error);
+        alert('Не удалось скачать файл. Проверьте консоль.');
+    }
+};
+</script>
+
+<script>
+const audio = document.getElementById('audio');
+const btn = document.getElementById('btn');
+const titleDisplay = document.getElementById('title');
+
+btn.onclick = async () => {
+    const videoUrl = document.getElementById('url').value;
+    const streamEndpoint = `/play?url=${encodeURIComponent(videoUrl)}`;
+
+    try {
+        titleDisplay.innerText = "Загрузка потока...";
+        
+        // Указываем источнику звука адрес нашего сервера
+        audio.src = streamEndpoint;
+        audio.load();
+        await audio.play();
+
+        // Отдельно запрашиваем только заголовки (HEAD), чтобы узнать название видео
+        const response = await fetch(streamEndpoint, { method: 'HEAD' });
+        const encodedTitle = response.headers.get('X-Video-Title');
+        if (encodedTitle) {
+            titleDisplay.innerText = decodeURIComponent(encodedTitle);
+        }
+
+    } catch (e) {
+        console.log('Ошибка воспроизведения:', e);
+        titleDisplay.innerText = "Ошибка загрузки аудио.";
+    }
+};
+</script>
+
+</body>
+</html>
