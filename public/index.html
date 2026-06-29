@@ -143,6 +143,25 @@ btn.onclick = async () => {
     }
 };
 </script>
+<div style="position:fixed;bottom:10px;right:10px;background:#111;color:#0f0;padding:10px;font-family:monospace;max-width:400px;z-index:9999;">
+  <button onclick="loadDebug()">Load Debug</button>
+  <pre id="debug"></pre>
+</div>
 
+<script>
+async function loadDebug() {
+    const res = await fetch('/debug');
+    const data = await res.json();
+
+    document.getElementById('debug').textContent =
+        "NODE: " + data.node + "\n" +
+        "PLATFORM: " + data.platform + "\n" +
+        "ARCH: " + data.arch + "\n\n" +
+        "YT-DLP PATH: " + data.ytDlpPath + "\n" +
+        "YT-DLP VERSION: " + data.ytDlpVersion + "\n\n" +
+        "FFMPEG: " + data.ffmpegVersion + "\n\n" +
+        "PATH:\n" + data.envPath;
+}
+</script>
 </body>
 </html>
