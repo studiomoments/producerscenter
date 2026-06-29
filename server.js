@@ -40,7 +40,7 @@ app.get('/play', async (req, res) => {
         res.setHeader('Transfer-Encoding', 'chunked');
         res.setHeader('X-Video-Title', encodeURIComponent(result.title));
 
-        const streamer = spawn('yt-dlp', [
+        const streamer = spawn('/usr/local/bin/yt-dlp', [
             '-o', '-',                         
             '-f', bestAudio.format_id,         
             videoUrl
@@ -79,7 +79,7 @@ app.get('/download', async (req, res) => {
         res.setHeader('X-Video-Title', encodeURIComponent(result.title));
         res.setHeader('X-File-Ext', bestAudio.ext);
 
-        const streamer = spawn('yt-dlp', [
+        const streamer = spawn('/usr/local/bin/yt-dlp', [
             '-o', '-',
             '-f', bestAudio.format_id,
             videoUrl
