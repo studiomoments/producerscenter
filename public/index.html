@@ -26,7 +26,7 @@
         if (!response.ok) throw new Error('Не удалось скачать файл с сервера');
 
         const rawTitle = decodeURIComponent(response.headers.get('X-Video-Title') || 'video');
-        const ext = response.headers.get('X-File-Ext') || 'mp3';
+        const ext = response.headers.get('X-File-Ext') || 'm4a';
 
         // Важно: очищаем имя файла от запрещенных операционной системой символов
         const cleanTitle = rawTitle.replace(/[/\\?%*:|"<>]/g, '-');
