@@ -136,6 +136,38 @@ app.get('/get-direct-url', async (req, res) => {
         res.status(500).json({ error: 'Ошибка получения метаданных' });
     }
 });
+
+app.get('/debug', (req, res) => {
+    const { execSync } = require('child_process');
+
+    let ytDlpVersion = 'not found';
+    let ffmpegVersion = 'not found';
+    let ytDlpPath = 'not found';
+
+    try {
+        ytDlpVersion = execSync('yt-dlp --version').toString().trim();
+    } catch (e) {}
+
+    try {
+        ffmpegVersion = execSync('ffmpeg -version').toString().split('\n')[0];
+    } catch (e) {}
+
+    try {
+        ytDlpPath = execSync('which yt-dlp').toString().trim();
+    } catch (e) {}
+
+    res.json({
+        node: process.version,
+        platform: process.platform,
+        arch: process.arch,
+        envPath: process.env.PATH,
+        ytDlpVersion,
+        ytDlpPath,
+        ffmpegVersion
+    });
+});
+
+
 const PORT = process.env.PORT || 3000;
 
 // '0.0.0.0' обязателен, чтобы Docker-контейнер принимал запросы из сети Render
