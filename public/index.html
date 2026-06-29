@@ -113,18 +113,20 @@ const titleDisplay = document.getElementById('title');
 
 btn.onclick = async () => {
     const videoUrl = document.getElementById('url').value;
-    const streamEndpoint = `/play?url=${encodeURIComponent(videoUrl)}`;
+    // ВАЖНО: Добавляем абсолютный URL вашего сервера на Render
+    const SERVER_URL = 'https://producerscenter.onrender.com'; 
+    const streamEndpoint = `${SERVER_URL}/play?url=${encodeURIComponent(videoUrl)}`;
 
     try {
         titleDisplay.innerText = "Загрузка потока...";
         
-        // Указываем источнику звука адрес нашего сервера
+        // 1. Указываем источнику звука адрес нашего сервера на Render
         audio.src = streamEndpoint;
         audio.load();
         await audio.play();
 
-        // Отдельно запрашиваем только заголовки (HEAD), чтобы узнать название видео
-        const response = await fetch(streamEndpoint, { method: 'HEAD' });
+        // 2. Делаем обычный быстрый запрос, чтобы забрать заголовки с метаданными
+        const response = await fetch(streamEndpoint);
         const encodedTitle = response.headers.get('X-Video-Title');
         if (encodedTitle) {
             titleDisplay.innerText = decodeURIComponent(encodedTitle);
