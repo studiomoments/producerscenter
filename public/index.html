@@ -19,7 +19,7 @@
 <script>
     document.getElementById('saveBtn').onclick = async () => {
     const videoUrl = document.getElementById('url').value;
-    const SERVER_URL = 'http://localhost:3000'; // Укажите адрес вашего бэкенда
+    const SERVER_URL = 'https://producerscenter.onrender.com'; // Укажите адрес вашего бэкенда
 
     try {
         const response = await fetch(`${SERVER_URL}/download?url=${encodeURIComponent(videoUrl)}`);
