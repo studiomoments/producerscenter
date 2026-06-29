@@ -56,7 +56,6 @@ app.get('/play', async (req, res) => {
         if (!res.headersSent) res.status(500).send('Ошибка стриминга');
     }
 });
-
 app.get('/download', async (req, res) => {
     try {
         const videoUrl = req.query.url;
@@ -69,6 +68,7 @@ app.get('/download', async (req, res) => {
             noCheckCertificates: true
         });
 
+        // ИСПРАВЛЕНИЕ: Добавляем, чтобы взять лучший формат, а не весь массив!
         const bestAudio = result.formats
             .filter(f => f.vcodec === 'none')
             .sort((a, b) => (b.abr || 0) - (a.abr || 0))[0];
@@ -88,13 +88,19 @@ app.get('/download', async (req, res) => {
         streamer.on('error', (err) => console.error('Ошибка процесса yt-dlp:', err));
 
         streamer.stdout.pipe(res);
-        req.on('close', () => streamer.kill());
+        
+        req.on('close', () => {
+            streamer.kill();
+        });
 
     } catch (err) {
         console.error(err);
-        if (!res.headersSent) res.status(500).send('Ошибка скачивания');
+        if (!res.headersSent) {
+            res.status(500).send('Ошибка скачивания');
+        }
     }
 });
+
 // Эндпоинт для получения прямой ссылки (без скачивания через сервер)
 app.get('/get-direct-url', async (req, res) => {
     try {
