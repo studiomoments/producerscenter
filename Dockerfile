@@ -1,10 +1,11 @@
 # 1. Используем официальный легковесный образ Node.js на базе Debian
 FROM node:20-slim
 
-# 2. Устанавливаем Python 3, pip и ffmpeg (нужен yt-dlp для корректной сборки аудио)
+# 2. Устанавливаем Python 3, pip, ffmpeg и curl
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
+    python3-is-python3 \
     ffmpeg \
     curl \
     && rm -rf /var/lib/apt/lists/*
@@ -19,14 +20,13 @@ WORKDIR /usr/src/app
 # 5. Копируем файлы зависимостей Node.js
 COPY package*.json ./
 
-# 6. Устанавливаем только production-зависимости Node.js
+# 6. Устанавливаем production-зависимости Node.js (исправленная и современная команда)
 RUN npm install --omit=dev
 
-# 7. Копируем все остальные файлы проекта (серверный код и папку public)
+# 7. Копируем все остальные файлы проекта
 COPY . .
 
-# 8. Render автоматически подставляет порт в переменную среды PORT,
-# но мы указываем стандартный 3000 в качестве дефолтного значения
+# 8. Открываем порт для Render
 EXPOSE 3000
 
 # 9. Запускаем сервер
