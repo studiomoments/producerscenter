@@ -88,41 +88,6 @@ app.get('/download', async (req, res) => {
     }
 });
 
-// Эндпоинт для получения прямой ссылки (без скачивания через сервер)
-app.get('/get-direct-url', async (req, res) => {
-    try {
-        const videoUrl = req.query.url;
-        if (!videoUrl) return res.status(400).json({ error: 'URL обязателен' });
-
-        // Мгновенно забираем JSON-данные видео
-        const result = await ytdl(videoUrl, {
-            dumpSingleJson: true,
-            noWarnings: true,
-            noCallHome: true,
-            noCheckCertificates: true
-        });
-
-        // Ищем лучший аудиоформат
-        const bestAudio = result.formats
-            .filter(f => f.vcodec === 'none')
-            .sort((a, b) => (b.abr || 0) - (a.abr || 0))[0];
-
-        if (!bestAudio || !bestAudio.url) {
-            return res.status(404).json({ error: 'Прямая ссылка не найдена' });
-        }
-
-        // Отправляем клиенту JSON с прямой ссылкой на сервера Google/YouTube
-        res.json({
-            directUrl: bestAudio.url, // Это и есть прямая ссылка на аудио-файл
-            title: result.title,
-            ext: bestAudio.ext
-        });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Ошибка получения метаданных' });
-    }
-});
 
 app.get('/debug', (req, res) => {
     const { execSync } = require('child_process');
@@ -151,17 +116,6 @@ app.get('/debug', (req, res) => {
         ytDlpVersion,
         ytDlpPath,
         ffmpegVersion
-    });
-});
-app.get('/test-ytdlp', (req, res) => {
-    const { spawnSync } = require('child_process');
-
-    const result = spawnSync('yt-dlp', ['--version']);
-
-    res.json({
-        status: result.status,
-        stdout: result.stdout?.toString(),
-        stderr: result.stderr?.toString()
     });
 });
 
