@@ -128,9 +128,7 @@ btn.onclick = async () => {
         const res = await fetch(endpoint);
         const data = await res.json();
 
-        if (!data.streamUrl) {
-            throw new Error("Нет streamUrl");
-        }
+        if (!data.streamUrl) throw new Error("Нет streamUrl");
 
         audio.src = data.streamUrl;
         audio.load();
