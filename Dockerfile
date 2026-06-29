@@ -13,9 +13,7 @@ RUN apt-get update && apt-get install -y \
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # 3. Скачиваем и устанавливаем последнюю версию yt-dlp напрямую
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
-    -o /usr/local/bin/yt-dlp \
-    && chmod a+rx /usr/local/bin/yt-dlp
+RUN pip3 install -U yt-dlp
 
 # 4. Создаем рабочую директорию внутри контейнера
 WORKDIR /usr/src/app
