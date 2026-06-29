@@ -126,5 +126,9 @@ app.get('/get-direct-url', async (req, res) => {
         res.status(500).json({ error: 'Ошибка получения метаданных' });
     }
 });
+const PORT = process.env.PORT || 3000;
 
-app.listen(3000, () => console.log('Сервер запущен: http://localhost:3000'));
+// '0.0.0.0' обязателен, чтобы Docker-контейнер принимал запросы из сети Render
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Сервер успешно запущен на порту ${PORT}`);
+});
