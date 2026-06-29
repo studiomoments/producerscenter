@@ -31,7 +31,12 @@ app.get('/play', async (req, res) => {
 
         if (!bestAudio) return res.status(404).send('Аудио-формат не найден');
 
-        res.setHeader('Content-Type', 'audio/mpeg'); 
+        // ДИНАМИЧЕСКИЙ MIME-ТИП: определяем тип контента на основе расширения формата YouTube
+        let contentType = 'audio/mpeg'; // дефолт
+        if (bestAudio.ext === 'webm') contentType = 'audio/webm; codecs="opus"';
+        if (bestAudio.ext === 'm4a') contentType = 'audio/mp4';
+
+        res.setHeader('Content-Type', contentType); 
         res.setHeader('Transfer-Encoding', 'chunked');
         res.setHeader('X-Video-Title', encodeURIComponent(result.title));
 
@@ -41,7 +46,6 @@ app.get('/play', async (req, res) => {
             videoUrl
         ]);
 
-        // Безопасность: не даем серверу упасть, если yt-dlp выдаст ошибку
         streamer.on('error', (err) => console.error('Ошибка процесса yt-dlp:', err));
 
         streamer.stdout.pipe(res);
