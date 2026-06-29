@@ -20,7 +20,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # 6. Устанавливаем только production-зависимости Node.js
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # 7. Копируем все остальные файлы проекта (серверный код и папку public)
 COPY . .
