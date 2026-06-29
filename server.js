@@ -166,7 +166,17 @@ app.get('/debug', (req, res) => {
         ffmpegVersion
     });
 });
+app.get('/test-ytdlp', (req, res) => {
+    const { spawnSync } = require('child_process');
 
+    const result = spawnSync('yt-dlp', ['--version']);
+
+    res.json({
+        status: result.status,
+        stdout: result.stdout?.toString(),
+        stderr: result.stderr?.toString()
+    });
+});
 
 const PORT = process.env.PORT || 3000;
 
