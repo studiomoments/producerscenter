@@ -25,7 +25,7 @@ app.get('/play', async (req, res) => {
         });
 
         const bestAudio = result.formats
-            .filter(f => f.vcodec === 'none' && f.url)
+            .filter(f => f.vcodec === 'none' && f.acodec && f.url && f.http_headers)
             .sort((a, b) => (b.abr || 0) - (a.abr || 0))[0];
 
         if (!bestAudio) {
