@@ -23,7 +23,12 @@
 
     try {
         const response = await fetch(`${SERVER_URL}/download?url=${encodeURIComponent(videoUrl)}`);
-        if (!response.ok) throw new Error('Не удалось скачать файл с сервера');
+        
+        // ВАЖНО: Если бэкенд упал с ошибкой 500, прерываем выполнение, чтобы не создавать пустой файл
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Ошибка сервера: ${errorText}`);
+        }
 
         const rawTitle = decodeURIComponent(response.headers.get('X-Video-Title') || 'video');
         const ext = response.headers.get('X-File-Ext') || 'm4a';
