@@ -12,7 +12,6 @@ app.use(cors({
 }));
 
 app.use(express.static('public'));
-
 app.get('/play', async (req, res) => {
     try {
         const videoUrl = req.query.url;
@@ -26,34 +25,22 @@ app.get('/play', async (req, res) => {
         });
 
         const bestAudio = result.formats
-            .filter(f => f.vcodec === 'none')
+            .filter(f => f.vcodec === 'none' && f.url)
             .sort((a, b) => (b.abr || 0) - (a.abr || 0))[0];
 
-        if (!bestAudio) return res.status(404).send('Аудио-формат не найден');
+        if (!bestAudio) {
+            return res.status(404).send('Аудио не найдено');
+        }
 
-        // ДИНАМИЧЕСКИЙ MIME-ТИП: определяем тип контента на основе расширения формата YouTube
-        let contentType = 'audio/mpeg'; // дефолт
-        if (bestAudio.ext === 'webm') contentType = 'audio/webm; codecs="opus"';
-        if (bestAudio.ext === 'm4a') contentType = 'audio/mp4';
-
-        res.setHeader('Content-Type', contentType); 
-        res.setHeader('Transfer-Encoding', 'chunked');
-        res.setHeader('X-Video-Title', encodeURIComponent(result.title));
-
-        const streamer = spawn('/usr/local/bin/yt-dlp', [
-            '-o', '-',                         
-            '-f', bestAudio.format_id,         
-            videoUrl
-        ]);
-
-        streamer.on('error', (err) => console.error('Ошибка процесса yt-dlp:', err));
-
-        streamer.stdout.pipe(res);
-        req.on('close', () => streamer.kill());
+        res.json({
+            streamUrl: bestAudio.url,
+            title: result.title,
+            ext: bestAudio.ext
+        });
 
     } catch (err) {
         console.error(err);
-        if (!res.headersSent) res.status(500).send('Ошибка стриминга');
+        res.status(500).json({ error: 'Ошибка получения streamUrl' });
     }
 });
 app.get('/download', async (req, res) => {
