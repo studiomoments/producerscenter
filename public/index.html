@@ -118,28 +118,30 @@ const titleDisplay = document.getElementById('title');
 
 btn.onclick = async () => {
     const videoUrl = document.getElementById('url').value;
-    // ВАЖНО: Добавляем абсолютный URL вашего сервера на Render
-    const SERVER_URL = 'https://producerscenter.onrender.com'; 
-    const streamEndpoint = `${SERVER_URL}/play?url=${encodeURIComponent(videoUrl)}`;
+
+    const SERVER_URL = 'https://producerscenter.onrender.com';
+    const endpoint = `${SERVER_URL}/play?url=${encodeURIComponent(videoUrl)}`;
 
     try {
-        titleDisplay.innerText = "Загрузка потока...";
-        
-        // 1. Указываем источнику звука адрес нашего сервера на Render
-        audio.src = streamEndpoint;
-        audio.load();
-        await audio.play();
+        titleDisplay.innerText = "Загрузка...";
 
-        // 2. Делаем обычный быстрый запрос, чтобы забрать заголовки с метаданными
-        const response = await fetch(streamEndpoint);
-        const encodedTitle = response.headers.get('X-Video-Title');
-        if (encodedTitle) {
-            titleDisplay.innerText = decodeURIComponent(encodedTitle);
+        const res = await fetch(endpoint);
+        const data = await res.json();
+
+        if (!data.streamUrl) {
+            throw new Error("Нет streamUrl");
         }
 
+        audio.src = data.streamUrl;
+        audio.load();
+
+        await audio.play();
+
+        titleDisplay.innerText = data.title || "Без названия";
+
     } catch (e) {
-        console.log('Ошибка воспроизведения:', e);
-        titleDisplay.innerText = "Ошибка загрузки аудио.";
+        console.log(e);
+        titleDisplay.innerText = "Ошибка воспроизведения";
     }
 };
 </script>
