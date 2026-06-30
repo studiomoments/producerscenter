@@ -4,11 +4,13 @@ const ytdl = require('yt-dlp-exec');
 const { spawn } = require('child_process');
 const yts = require('yt-search');
 
-
 const app = express();
+
+app.set('trust proxy', 1);
 
 app.use(cors({
     origin: true,
+    credentials: false,
     exposedHeaders: [
         'X-Video-Title',
         'X-File-Ext'
