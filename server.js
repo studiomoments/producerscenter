@@ -2,43 +2,14 @@ const express = require('express');
 const cors = require('cors'); // Инициализируем CORS
 const ytdl = require('yt-dlp-exec');
 const { spawn } = require('child_process');
-const yts = require('yt-search');
-
-// const https = require('https');
-// const fs = require('fs');
 
 const app = express();
-app.set('trust proxy', true);
-const allowedOrigins = (
-    process.env.ALLOWED_ORIGINS || ''
-)
-    .split(',')
-    .filter(Boolean);
 
-app.use(cors({
-    origin: '*',
-    exposedHeaders: [
-        'X-Video-Title',
-        'X-File-Ext'
-    ]
-}));
-
-// app.use(cors({
-//     origin(origin, callback) {
-//         if (!origin) {
-//             return callback(null, true);
-//         }
-
-//         if (allowedOrigins.includes(origin)) {
-//             return callback(null, true);
-//         }
-
-//         callback(new Error('Not allowed by CORS'));
-//     },
-//     exposedHeaders: ['X-Video-Title', 'X-File-Ext'] // Важно: разрешаем клиенту читать эти заголовки
-// }));
 // Разрешаем CORS для всех (или укажите конкретный домен вашего PWA)
-
+app.use(cors({
+    origin: '*', 
+    exposedHeaders: ['X-Video-Title', 'X-File-Ext'] // Важно: разрешаем клиенту читать эти заголовки
+}));
 
 app.use(express.static('public'));
 
@@ -74,7 +45,7 @@ app.get('/download', async (req, res) => {
         streamer.on('error', (err) => console.error('Ошибка процесса yt-dlp:', err));
 
         streamer.stdout.pipe(res);
-
+        
         req.on('close', () => {
             streamer.kill();
         });
@@ -88,7 +59,7 @@ app.get('/download', async (req, res) => {
 });
 
 const metadataCache = new Map();
-const searchCache = new Map();
+
 async function getVideoInfo(videoUrl) {
 
     const cached = metadataCache.get(videoUrl);
@@ -178,148 +149,49 @@ app.get('/media-info', async (req, res) => {
 });
 
 
-const { apiLimiter, searchLimiter } = require('./middleware/rateLimit');
+app.get(
+    '/search',
+    async (req, res) => {
 
-app.use(apiLimiter);
-app.get('/search', async (req, res) => {
-    const q = req.query.q;
+        const q =
+            req.query.q;
 
-    const cached = searchCache.get(q);
+        const result =
+            await ytdl(
+                `ytsearch10:${q}`,
+                {
+                    dumpSingleJson: true
+                }
+            );
 
-    if (
-        cached &&
-        Date.now() - cached.time < 300000
-    ) {
-        return res.json(cached.data);
+        const tracks =
+            result.entries.map(
+                item => ({
+
+                    id: item.id,
+
+                    title:
+                        item.title,
+
+                    channel:
+                        item.channel,
+
+                    duration:
+                        item.duration,
+
+                    thumbnail:
+                        `https://i.ytimg.com/vi/${item.id}/default.jpg`,
+
+                    originalUrl:
+                        item.webpage_url
+                })
+            );
+
+        res.json(
+            tracks
+        );
     }
-
-    const result = await yts(q);
-
-    const tracks = result.videos
-        .slice(0, 100)
-        .map(v => ({
-            id: v.videoId,
-            title: v.title,
-            channel: v.author.name,
-            duration: v.seconds,
-            thumbnail:
-                `https://i.ytimg.com/vi/${v.videoId}/default.jpg`,
-            originalUrl: v.url
-        }));
-
-    searchCache.set(q, {
-        data: tracks,
-        time: Date.now()
-    });
-
-    res.json(tracks);
-});
-// app.get('/search', searchLimiter, async (req, res) => {
-
-//     try {
-
-//         const q = req.query.q;
-
-//         // const page = Math.max(
-//         //     1,
-//         //     Number(req.query.page) || 1
-//         // );
-
-//         // const limit = Math.min(
-//         //     50,
-//         //     Math.max(
-//         //         1,
-//         //         Number(req.query.limit) || 20
-//         //     )
-//         // );
-
-
-//         let result = await ytdl(
-//             `ytsearch100:${q}`,
-//             {
-//                 dumpSingleJson: true
-//             }
-//         );
-
-//         const entries =
-//             result.entries || [];
-
-//         const musicEntries =
-//             entries.filter(item =>
-//                 item.channel &&
-//                 (
-//                     item.channel.includes('Topic') ||
-//                     item.channel.includes('Music')
-//                 )
-//             );
-
-//         const finalEntries =
-//             musicEntries.length > 0
-//                 ? musicEntries
-//                 : entries;
-
-//         const tracks =
-//             finalEntries.map(item => ({
-//                 id: item.id,
-//                 title: item.title,
-//                 channel: item.channel,
-//                 duration: item.duration,
-//                 thumbnail:
-//                     `https://i.ytimg.com/vi/${item.id}/default.jpg`,
-//                 originalUrl:
-//                     item.webpage_url
-//             }));
-
-//         res.json(tracks);
-//         // const start =
-//         //     (page - 1) * limit;
-
-//         // const pagedTracks =
-//         //     tracks.slice(
-//         //         start,
-//         //         start + limit
-//         //     );
-
-//         // res.json({
-//         //     page,
-//         //     total: tracks.length,
-//         //     totalPages:
-//         //         Math.ceil(
-//         //             tracks.length / limit
-//         //         ),
-//         //     items: pagedTracks
-//         // });
-
-//     } catch (err) {
-
-//         console.error(err);
-
-//         res.json([]);
-//     }
-// });
-
-
-app.get('/debug-mobile', (req, res) => {
-
-    console.log('=== MOBILE DEBUG ===');
-    console.log('ip:', req.ip);
-    console.log('user-agent:', req.headers['user-agent']);
-    console.log('time:', new Date().toISOString());
-
-    res.json({
-        ok: true
-    });
-});
-
-app.post('/debug-add', express.json(), (req, res) => {
-
-    console.log('=== ADD TRACK ===');
-    console.log(req.body);
-
-    res.json({
-        ok: true
-    });
-});
+);
 
 app.get('/debug', (req, res) => {
     const { execSync } = require('child_process');
@@ -330,15 +202,15 @@ app.get('/debug', (req, res) => {
 
     try {
         ytDlpVersion = execSync('yt-dlp --version').toString().trim();
-    } catch (e) { }
+    } catch (e) {}
 
     try {
         ffmpegVersion = execSync('ffmpeg -version').toString().split('\n')[0];
-    } catch (e) { }
+    } catch (e) {}
 
     try {
         ytDlpPath = execSync('which yt-dlp').toString().trim();
-    } catch (e) { }
+    } catch (e) {}
 
     res.json({
         node: process.version,
@@ -350,45 +222,10 @@ app.get('/debug', (req, res) => {
         ffmpegVersion
     });
 });
-app.get('/debug-ytdlp', async (req, res) => {
 
-    try {
-
-        const result = await ytdl(
-            'https://www.youtube.com/watch?v=eVTXPUF4Oz4',
-            {
-                dumpSingleJson: true
-            }
-        );
-
-        res.json({
-            title: result.title
-        });
-
-    } catch (e) {
-
-        console.error(e);
-
-        res.status(500).json({
-            error: e.message
-        });
-    }
-});
 
 const PORT = process.env.PORT || 3000;
-// https.createServer(
-//     {
-//         key: fs.readFileSync('key.pem'),
-//         cert: fs.readFileSync('cert.pem')
-//     },
-//     app
-// ).listen(PORT, '0.0.0.0', () => {
 
-//     console.log(
-//         `HTTPS сервер запущен на порту ${PORT}`
-//     );
-
-// });
 // '0.0.0.0' обязателен, чтобы Docker-контейнер принимал запросы из сети Render
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Сервер успешно запущен на порту ${PORT}`);
