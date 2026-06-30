@@ -19,7 +19,7 @@
             <option value="shuffle">Shuffle</option>
         </select>
     </div>
-    <audio id="audio" controls style="width:600px"></audio>
+    <audio id="audio" controls style="width:100%"></audio>
     <hr>
     <div class="tabbar">
         <button class="tabBtn active" data-tab="searchTab">Search</button>
@@ -32,13 +32,14 @@
         <div id="searchDropdown"></div>
         <button id="searchBtn">Search</button>
         <div id="searchSuggestions" style="display: none;"></div>
+        <div id="pagination"></div>
         <hr>
         <div id="searchResults"></div>
     </div>
 
     <div id="playlistTab" class="tabContent">
         <h2>Playlist</h2>
-        <input id="url" style="width:600px" placeholder="YouTube URL">
+        <input id="url" style="max-width:600px" placeholder="YouTube URL">
         <button id="addBtn">Add</button>
         <hr>
         <div id="playlistInfo"></div>
@@ -269,11 +270,11 @@
             };
     </script>
 
-    <div
+    <!-- <div
         style="position:fixed;bottom:10px;right:10px;background:#111;color:#0f0;padding:10px;font-family:monospace;max-width:400px;z-index:9999;">
         <button onclick="loadDebug()">Load Debug</button>
         <pre id="debug"></pre>
-    </div>
+    </div> -->
 
     <script>
 
