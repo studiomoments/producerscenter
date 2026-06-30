@@ -1,0 +1,151 @@
+ .tabbar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+ .tabBtn {
+     padding: 5px 20px;
+     cursor: pointer;
+ }
+
+ .tabBtn.active {
+     font-weight: bold;
+ }
+
+ .tabContent {
+     display: none;
+ }
+
+ .tabContent.active {
+     display: block;
+ }
+
+ #searchDropdown {
+
+     position: absolute;
+
+     width: 600px;
+
+     background: white;
+
+     /* border: 1px solid #ccc; */
+
+     max-height: 400px;
+
+     overflow: auto;
+
+     z-index: 1000;
+ }
+
+ /* .searchItem {
+
+     display: flex;
+
+     align-items: center;
+
+     padding: 8px;
+
+     cursor: pointer;
+ } */
+
+ .searchItem:hover {
+
+     background: #eee;
+ }
+
+ .searchItem img {
+
+     width: 40px;
+     height: 40px;
+
+     object-fit: cover;
+
+     margin-right: 10px;
+ }
+
+ .cover {
+
+     width: 40px;
+     height: 40px;
+     object-fit: cover;
+     margin-right: 10px;
+     vertical-align: middle;
+
+ }
+
+ /* .track_items {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 6px;
+    background-color: transparent;
+    transition: background-color 0.2s ease; 
+}
+     */
+.track_items:hover {
+    background-color: #f0f0f0; /* Цвет фона при наведении */
+    cursor: pointer;           /* Меняет курсор на "руку" */
+}
+
+.track_items button {
+    border: none;
+    background: none;
+    padding: 5px 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Эффект при наведении на конкретную кнопку */
+.track_items button:hover {
+    background-color: #ddd; /* Серый фон */
+    transform: scale(1.1);   /* Легкое увеличение */
+}
+
+/* Индивидуальный ховер для кнопки удаления (сделаем её красной) */
+.track_items .removeBtn:hover {
+    background-color: #ffcccc;
+}
+
+.track_items, .searchItem {
+    display: grid;
+    grid-template-columns: 50px 1fr 30px 30px 30px;
+    align-items: center;
+    gap: 0px;
+    padding: 0px;
+    border-bottom: 1px solid #222;
+}
+.searchItem {
+    display: grid;
+    grid-template-columns: 50px 1fr 40px;
+    align-items: center;
+    gap: 0px;
+    padding: 0px;
+    border-bottom: 1px solid #222;
+}
+#offlinePlaylist .track_items {
+    grid-template-columns: 50px 1fr 30px 30px ;
+}
+.track_items img.cover {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+}
+
+.track_items button {
+    width: 36px;
+    height: 36px;
+}
+
+p.track_title {
+    font-size: small;
+    margin: 0;
+}
+
+audio#audio {
+    margin-top: 10px;
+    height: 20px;
+}
