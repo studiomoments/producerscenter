@@ -979,7 +979,7 @@ async function renderPlaylist() {
 
 async function downloadTrack(track) {
     const SERVER_URL =
-        'https://localhost:3000';
+        'https://producerscenter.onrender.com';
 
     const res =
         await fetch(
