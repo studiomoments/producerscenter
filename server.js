@@ -16,7 +16,7 @@ const allowedOrigins = (
     .filter(Boolean);
 
 app.use(cors({
-    origin: true,
+    origin: *,
     exposedHeaders: [
         'X-Video-Title',
         'X-File-Ext'
