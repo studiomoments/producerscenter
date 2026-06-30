@@ -1,9 +1,5 @@
 
 const PLAYLIST_FILE = 'playlist.json';
-let searchResults = [];
-let currentPage = 1;
-
-const RESULTS_PER_PAGE = 20;
 
 const audio = document.getElementById(
     'audio'
@@ -365,7 +361,7 @@ async function renderOfflinePlaylist() {
             document.createElement(
                 'div'
             );
-        row.className = "track_items"; 
+
         row.style.margin =
             '10px 0';
 
@@ -385,13 +381,19 @@ async function renderOfflinePlaylist() {
         }
 
         row.innerHTML = `
-            <img class="cover"
+            <img
                 src="${coverUrl}"
-                >
+                style="
+                    width:40px;
+                    height:40px;
+                    object-fit:cover;
+                    vertical-align:middle;
+                    margin-right:10px;
+                ">
 
-            <p class="track_title">
+            <b>
                 ${track.title}
-            </p>
+            </b>
 
             <button class="playBtn">
                 ▶
@@ -449,6 +451,26 @@ async function getOfflineSize() {
 
 
 
+async function searchTracks(q) {
+
+    const res =
+        await fetch(
+            `/search?q=${encodeURIComponent(q)}`
+        );
+
+    const items =
+        await res.json();
+
+    renderSearchSuggestions(
+        items
+            .slice(0, 50)
+            .map(t => t.title)
+    );
+
+    renderSearchResults(
+        items
+    );
+}
 function renderSearchSuggestions(
     suggestions
 ) {
@@ -491,7 +513,6 @@ function renderSearchSuggestions(
         }
     );
 }
-
 async function addTrackToPlaylist(track) {
 
     const playlist =
@@ -561,11 +582,9 @@ async function addTrackToPlaylist(track) {
 
     await renderPlaylist();
 }
-
-async function renderSearchResults(items) {
-
-    const playlist =
-        await loadPlaylist();
+function renderSearchResults(
+    items
+) {
 
     const div =
         document.getElementById(
@@ -574,152 +593,44 @@ async function renderSearchResults(items) {
 
     div.innerHTML = '';
 
-    items.forEach(track => {
+    items
+        .slice(0, 50)
+        .forEach(track => {
 
-        const added =
-            playlist.tracks.some(
-                t => t.id === track.id
+            const row =
+                document.createElement(
+                    'div'
+                );
+
+            row.className =
+                'searchItem';
+
+            row.innerHTML = `
+                <img
+                    src="${track.thumbnail}"
+                    width="50">
+
+                <b>
+                    ${track.title}
+                </b>
+
+                <button>
+                    Add
+                </button>
+            `;
+
+            row.querySelector(
+                'button'
+            ).onclick =
+                () => addTrackToPlaylist(
+                    track
+                );
+
+            div.appendChild(
+                row
             );
-
-        const row =
-            document.createElement('div');
-
-        row.className =
-            'searchItem';
-
-        row.innerHTML = `
-            <img class="cover"
-                src="${track.thumbnail}">
-
-            <p class="track_title">
-                ${track.title}
-            </p>
-
-            <button class="addBtn">
-                ${added ? '✅' : 'Add'}
-            </button>
-        `;
-
-        const btn =
-            row.querySelector('.addBtn');
-
-        if (added) {
-
-            btn.disabled = true;
-
-        } else {
-
-            btn.onclick = async () => {
-
-                await addTrackToPlaylist(track);
-
-                btn.textContent = '✅';
-                btn.disabled = true;
-            };
-        }
-
-        div.appendChild(row);
-    });
+        });
 }
-
-
-function renderPagination() {
-
-    const container =
-        document.getElementById(
-            'pagination'
-        );
-
-    container.innerHTML = '';
-
-    const totalPages =
-        Math.ceil(
-            searchResults.length /
-            RESULTS_PER_PAGE
-        );
-    console.log(totalPages);
-    if (totalPages <= 1)
-        return;
-
-    const prev =
-        document.createElement(
-            'button'
-        );
-
-    prev.textContent = '←';
-
-    prev.disabled =
-        currentPage === 1;
-
-    prev.onclick = () => {
-
-        currentPage--;
-
-        renderSearchResultsPage();
-    };
-
-    container.appendChild(
-        prev
-    );
-
-    const info =
-        document.createElement(
-            'span'
-        );
-
-    info.textContent =
-        ` ${currentPage} / ${totalPages} `;
-
-    container.appendChild(
-        info
-    );
-
-    const next =
-        document.createElement(
-            'button'
-        );
-
-    next.textContent = '→';
-
-    next.disabled =
-        currentPage === totalPages;
-
-    next.onclick = () => {
-
-        currentPage++;
-
-        renderSearchResultsPage();
-    };
-
-    container.appendChild(
-        next
-    );
-    console.log(totalPages);
-}
-function renderSearchResultsPage() {
-
-    const start =
-        (currentPage - 1) *
-        RESULTS_PER_PAGE;
-
-    const end =
-        start +
-        RESULTS_PER_PAGE;
-
-    const pageItems =
-        searchResults.slice(
-            start,
-            end
-        );
-
-    renderSearchResults(
-        pageItems
-    );
-
-    renderPagination();
-}
-
-
 
 
 
@@ -780,7 +691,6 @@ async function renderPlaylist() {
     for (const track of playlist.tracks) {
         const row =
             document.createElement('div');
-        row.className = "track_items"; 
         row.style.marginTop = '5px';
         row.style.marginBottom = '5px';
 
@@ -801,13 +711,16 @@ async function renderPlaylist() {
         }
 
         row.innerHTML = `
-                    <img class="cover"
+                    <img
                         src="${coverUrl}"
-                      >
+                        style="
+                            width:40px;
+                            height:40px;
+                            object-fit:cover;
+                            margin-right:10px;
+                            vertical-align:middle;">
 
-                    <p class="track_title">
-                    ${track.title}
-                    </p>
+                    <b>${track.title}</b>
 
                     <button class="playBtn">
                         ▶
@@ -980,7 +893,7 @@ async function renderPlaylist() {
 
 async function downloadTrack(track) {
     const SERVER_URL =
-        'https://producerscenter.onrender.com';
+        'http://localhost:3000';
 
     const res =
         await fetch(
@@ -1084,93 +997,4 @@ async function deleteTrackFile(track) {
     await savePlaylist(
         playlist
     );
-}
-
-
-
-const SEARCH_HISTORY_KEY = 'search_history';
-
-function getSearchHistory() {
-    return JSON.parse(
-        localStorage.getItem(SEARCH_HISTORY_KEY) || '[]'
-    );
-}
-
-function saveSearchQuery(query) {
-    if (!query) return;
-
-    let history = getSearchHistory();
-
-    history = history.filter(
-        item => item !== query
-    );
-
-    history.unshift(query);
-
-    history = history.slice(0, 20);
-
-    localStorage.setItem(
-        SEARCH_HISTORY_KEY,
-        JSON.stringify(history)
-    );
-}
-
-async function searchTracks(q) {
-    saveSearchQuery(q);
-
-    const res =
-        await fetch(
-            `/search?q=${encodeURIComponent(q)}`
-        );
-
-    searchResults =
-        await res.json();
-
-    currentPage = 1;
-
-    renderSearchResultsPage();
-}
-
-
-function renderSearchDropdown(query = '') {
-
-    const dropdown =
-        document.getElementById(
-            'searchDropdown'
-        );
-
-    const history =
-        getSearchHistory();
-
-    const items =
-        history.filter(item =>
-            item
-                .toLowerCase()
-                .includes(
-                    query.toLowerCase()
-                )
-        );
-
-    dropdown.innerHTML = '';
-
-    items.forEach(text => {
-
-        const row =
-            document.createElement('div');
-
-        row.textContent = text;
-
-        row.onclick = () => {
-
-            document.getElementById(
-                'searchInput'
-            ).value = text;
-
-            searchTracks(text);
-
-            dropdown.innerHTML = '';
-        };
-
-        dropdown.appendChild(row);
-    });
 }
