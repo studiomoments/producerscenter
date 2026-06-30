@@ -350,7 +350,30 @@ app.get('/debug', (req, res) => {
         ffmpegVersion
     });
 });
+app.get('/debug-ytdlp', async (req, res) => {
 
+    try {
+
+        const result = await ytdl(
+            'https://www.youtube.com/watch?v=eVTXPUF4Oz4',
+            {
+                dumpSingleJson: true
+            }
+        );
+
+        res.json({
+            title: result.title
+        });
+
+    } catch (e) {
+
+        console.error(e);
+
+        res.status(500).json({
+            error: e.message
+        });
+    }
+});
 
 const PORT = process.env.PORT || 3000;
 // https.createServer(
