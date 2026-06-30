@@ -8,7 +8,7 @@ const yts = require('yt-search');
 // const fs = require('fs');
 
 const app = express();
-
+app.set('trust proxy', true);
 const allowedOrigins = (
     process.env.ALLOWED_ORIGINS || ''
 )
